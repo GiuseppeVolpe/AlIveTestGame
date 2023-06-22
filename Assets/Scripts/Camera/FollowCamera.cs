@@ -14,16 +14,22 @@ public class FollowCamera : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        _camera = GetComponentInChildren<Camera>();
     }
 
     // Update is called once per frame
     void Update()
     {
+
     }
 
     private void FixedUpdate()
     {
+        if (target == null)
+        {
+            return;
+        }
+
         Vector3 desiredPosition = new Vector3(target.transform.position.x + offset.x,
                                               target.transform.position.y + offset.y,
                                               target.transform.position.z + offset.z);

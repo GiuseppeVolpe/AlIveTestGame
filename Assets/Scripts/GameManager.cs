@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public LayerMask RaycastLayerMax;
     public CharacterController characterController;
     public GameObject ball;
 
@@ -27,7 +28,7 @@ public class GameManager : MonoBehaviour
 
             RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit, 1000))
+            if (Physics.Raycast(ray, out hit, 1000, RaycastLayerMax, QueryTriggerInteraction.Ignore))
             {
                 characterController.ReachPosition(hit.point);
             }
@@ -35,7 +36,10 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            characterController.PickItem(ball);
+            List<string> entities = new List<string>();
+            entities.Add("ball");
+
+            characterController.GetComponent<CharacterAI>().UnderstandCommand(new Command("PickItem", entities));
         }
     }
 }

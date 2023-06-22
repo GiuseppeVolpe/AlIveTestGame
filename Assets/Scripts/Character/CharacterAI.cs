@@ -4,7 +4,17 @@ using UnityEngine;
 
 public class CharacterAI : MonoBehaviour
 {
-    const float PathUpdatingRepeatRate = 2f;
+    const float PathUpdatingRepeatRate = 1f;
+
+    const string ReachTargetIntent = "ReachTarget";
+    const string PickItemIntent = "PicktItem";
+
+    private CharacterController _cc;
+
+    private void Start()
+    {
+        _cc = GetComponent<CharacterController>();
+    }
 
     #region Navigation
 
@@ -292,6 +302,66 @@ public class CharacterAI : MonoBehaviour
         _desiredPosition = null;
         FollowingDistance = 0;
         StopUpdatingPath();
+    }
+
+    #endregion
+
+    #region NLP
+
+    private Coroutine _understandingCommandCoroutine;
+
+    public void UnderstandCommand(Command command)
+    {
+        if (_cc == null)
+        {
+            return;
+        }
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1);
+        Collider contextCollider = null;
+
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.gameObject.layer == GameConsts.ContextLayer())
+            {
+                contextCollider = hitCollider;
+                break;
+            }
+        }
+
+        if (contextCollider == null)
+        {
+            return;
+        }
+
+        Context contextComponent = contextCollider.GetComponent<Context>();
+
+        if (contextComponent == null)
+        {
+            return;
+        }
+
+        foreach (Entity entity in contextComponent.GetEntitiesInContext())
+        {
+            Debug.Log(entity.gameObject.name);
+        }
+
+        _understandingCommandCoroutine = StartCoroutine(UnderstandCommandCoroutine(command));
+    }
+
+    private IEnumerator UnderstandCommandCoroutine(Command command)
+    {
+        yield return new WaitForSeconds(0);
+
+        switch (command.Intent)
+        {
+            case ReachTargetIntent:
+
+                break;
+            case PickItemIntent:
+
+                break;
+        }
     }
 
     #endregion

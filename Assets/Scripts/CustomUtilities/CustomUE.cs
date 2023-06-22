@@ -162,152 +162,23 @@ public class CustomUE
         return rotateZToUp * rotateYToZ;
     }
 
-    #region Too specific, to review
-
-    /*
-     * 
-    public static IEnumerator EmbarkOnNavMeshPath(GameObject walker,
-                                                  NavMeshPath path,
-                                                  float positionSpeedFactor = 1,
-                                                  float rotationSpeedFactor = 1)
+    public static bool IsWithinBoxBounds(Vector3 point, BoxCollider boxCollider)
     {
-        for (int i = 0; i < path.corners.Length - 1; i++)
-        {
-            Vector3 startCorner = path.corners[i];
-            Vector3 destinationCorner = path.corners[i + 1];
+        point = boxCollider.transform.InverseTransformPoint(point) - boxCollider.center;
 
-            Quaternion startRotation = walker.transform.rotation;
-
-            Vector3 targetForRotation = new Vector3(destinationCorner.x,
-                                                    startCorner.y,
-                                                    destinationCorner.z);
-
-            Quaternion desiredRotation = Quaternion
-                .LookRotation(targetForRotation - startCorner);
-
-            Task positionLerpingTask = new Task(LerpPosition(walker,
-                                                             startCorner,
-                                                             destinationCorner,
-                                                             positionSpeedFactor));
-
-            Task rotationLerpingTask = new Task(LerpRotation(walker,
-                                                             startRotation,
-                                                             desiredRotation,
-                                                             rotationSpeedFactor));
-
-            yield return new WaitUntil(() => !positionLerpingTask.Running &&
-                                             !rotationLerpingTask.Running);
-        }
+        float halfX = (boxCollider.size.x * 0.5f);
+        float halfY = (boxCollider.size.y * 0.5f);
+        float halfZ = (boxCollider.size.z * 0.5f);
+        if (point.x < halfX && point.x > -halfX &&
+           point.y < halfY && point.y > -halfY &&
+           point.z < halfZ && point.z > -halfZ)
+            return true;
+        else
+            return false;
     }
 
-    public static IEnumerator LerpPosition(GameObject walker,
-                                           Vector3 startPosition,
-                                           Vector3 desiredPosition,
-                                           float speedFactor,
-                                           float distance = 0)
+    public static Collider[] BoxColliderOverlaps(BoxCollider target, int layerMask, bool hitTriggers)
     {
-        if (distance > 0)
-        {
-            desiredPosition = CustomUE.LerpByDistance(startPosition,
-                                                      desiredPosition,
-                                                      distance);
-        }
-
-        if (Vector3.Distance(startPosition, desiredPosition) == 0)
-        {
-            yield break;
-        }
-
-        float lerpFactor = 0;
-        float increment;
-
-        Vector3 currentPosition;
-
-        do
-        {
-            increment = Time.fixedDeltaTime * speedFactor /
-                Vector3.Distance(startPosition, desiredPosition);
-
-            lerpFactor += increment;
-            lerpFactor = Mathf.Clamp01(lerpFactor);
-
-            currentPosition = Vector3.Lerp(startPosition, desiredPosition, lerpFactor);
-
-            walker.transform.position = currentPosition;
-
-            yield return new WaitForFixedUpdate();
-
-        } while (lerpFactor < 1);
-
-        walker.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        return Physics.OverlapBox(target.transform.position + target.center, target.size * 0.5f, target.transform.rotation, layerMask, hitTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
     }
-
-    */
-
-    public static IEnumerator LerpRotation(GameObject walker,
-                                           Quaternion startRotation,
-                                           Quaternion desiredRotation,
-                                           float speedFactor)
-    {
-        if (Quaternion.Angle(startRotation, desiredRotation) == 0)
-        {
-            yield break;
-        }
-
-        float lerpFactor = 0;
-        float increment;
-
-        Quaternion currentRotation;
-
-        do
-        {
-            increment = Time.fixedDeltaTime * speedFactor;
-
-            lerpFactor += increment;
-            lerpFactor = Mathf.Clamp01(lerpFactor);
-
-            currentRotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
-
-            walker.transform.rotation = currentRotation;
-
-            yield return new WaitForFixedUpdate();
-
-        } while (lerpFactor < 1);
-    }
-
-    public static IEnumerator ParabolicLerpPosition(GameObject walker,
-                                           Vector3 startPosition,
-                                           Vector3 desiredPosition,
-                                           float speedFactor,
-                                           Vector3 up,
-                                           float concavityFactor = 4)
-    {
-        float lerpFactor = 0;
-        float increment;
-
-        Vector3 currentPosition;
-        concavityFactor *= Vector3.Distance(startPosition, desiredPosition) / 5;
-
-        do
-        {
-            increment = Time.fixedDeltaTime * speedFactor /
-                Vector3.Distance(startPosition, desiredPosition);
-
-            lerpFactor += increment;
-            lerpFactor = Mathf.Clamp01(lerpFactor);
-
-            currentPosition = Vector3.Lerp(startPosition, desiredPosition, lerpFactor);
-
-            float yModifier = (lerpFactor - Mathf.Pow(lerpFactor, 2)) * concavityFactor;
-
-            currentPosition += (up * yModifier);
-
-            walker.transform.position = currentPosition;
-
-            yield return null;
-
-        } while (lerpFactor < 1);
-    }
-    
-    #endregion
 }

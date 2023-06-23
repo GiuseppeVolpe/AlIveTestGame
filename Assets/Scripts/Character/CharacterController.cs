@@ -176,7 +176,7 @@ public class CharacterController : MonoBehaviour
         return success;
     }
 
-    public bool ThrowItem(Vector3 target)
+    public bool ThrowItem(GameObject target)
     {
         bool success = false;
 
@@ -189,9 +189,23 @@ public class CharacterController : MonoBehaviour
         return success;
     }
 
-    private IEnumerator ThrowItemCoroutine(GameObject item, Vector3 target)
+    private IEnumerator ThrowItemCoroutine(GameObject item, GameObject target)
     {
-        yield return new WaitForSeconds(0);
+        Vector3 targetPosition = target.transform.position;
+
+        Coroutine lerpCoroutine = 
+            StartCoroutine(CustomUE.ParabolicLerpPosition(item, item.transform.position, targetPosition, 10, Vector3.up));
+
+        yield return new WaitUntil(() => Vector3.Distance(item.transform.position, targetPosition) < 1);
+
+        Hittable hittableComponent = target.GetComponentInChildren<Hittable>();
+
+        if (hittableComponent != null)
+        {
+            hittableComponent.OnHit();
+        }
+
+        StopCoroutine(lerpCoroutine);
 
         _currentActionCoroutine = null;
     }

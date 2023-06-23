@@ -377,6 +377,11 @@ public class CharacterAI : MonoBehaviour
                 recognizedIntent = InspectIntent;
                 recognizedEntities.Add(new Command.RecognizedEntity(ToInspectRole, "Bush"));
                 break;
+            case "throw against pot":
+                recognizedIntent = ThrowIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToThrowRole, "Ball"));
+                recognizedEntities.Add(new Command.RecognizedEntity(ToHitRole, "Pot"));
+                break;
         }
 
         command = new Command(recognizedIntent, recognizedEntities);
@@ -465,6 +470,31 @@ public class CharacterAI : MonoBehaviour
 
                         break;
                     case ThrowIntent:
+
+                        List<GameObject> gosToThrow = LocateRecognizedEntitiesInContext(command, ToThrowRole, contextComponent);
+                        List<GameObject> gosToHit = LocateRecognizedEntitiesInContext(command, ToHitRole, contextComponent);
+
+                        if (gosToThrow.Count <= 1)
+                        {
+                            _cc.LeaveItem();
+
+                            if (gosToHit.Count == 0)
+                            {
+                                errors.Add(UnderstandingErrorType.MissingEntities);
+                            }
+                            else if (gosToHit.Count == 1) {
+                                _cc.ThrowItem(gosToHit[0]);
+                            }
+                            else if (gosToHit.Count > 1)
+                            {
+                                errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                            }
+                        }
+                        else if (gosToThrow.Count > 1)
+                        {
+                            errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                        }
+
                         break;
                     case InspectIntent:
 

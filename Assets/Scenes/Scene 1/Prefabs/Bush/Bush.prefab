@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 5938951528301636705}
   - component: {fileID: 2800545203694784175}
   m_Layer: 0
-  m_Name: Bush1
+  m_Name: Bush
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

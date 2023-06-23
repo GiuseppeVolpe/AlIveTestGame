@@ -48,5 +48,10 @@ public class GameManager : MonoBehaviour
         {
             characterController.GetComponent<CharacterAI>().GiveCommand("inspect bush");
         }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            characterController.GetComponent<CharacterAI>().GiveCommand("throw against pot");
+        }
     }
 }

@@ -185,4 +185,40 @@ public class CustomUE
                                               target.size.z * target.transform.localScale.z) * 0.5f,
                                   target.transform.rotation, layerMask, hitTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
     }
+
+
+    public static IEnumerator ParabolicLerpPosition(GameObject walker, 
+                                                    Vector3 startPosition,
+                                                    Vector3 desiredPosition,
+                                                    float speedFactor,
+                                                    Vector3 up,
+                                                    float concavityFactor = 4)
+    {
+        float lerpFactor = 0;
+        float increment;
+
+        Vector3 currentPosition;
+        concavityFactor *= Vector3.Distance(startPosition, desiredPosition) / 5;
+
+        do
+        {
+            increment = Time.fixedDeltaTime * speedFactor /
+                Vector3.Distance(startPosition, desiredPosition);
+
+            lerpFactor += increment;
+            lerpFactor = Mathf.Clamp01(lerpFactor);
+
+            currentPosition = Vector3.Lerp(startPosition, desiredPosition, lerpFactor);
+
+            float yModifier = (lerpFactor - Mathf.Pow(lerpFactor, 2)) * concavityFactor;
+
+            currentPosition += (up * yModifier);
+
+            walker.transform.position = currentPosition;
+
+            yield return null;
+
+        } while (lerpFactor < 1);
+    }
+
 }

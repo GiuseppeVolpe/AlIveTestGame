@@ -1309,13 +1309,41 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5814664795473525680, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_Size.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5814664795473525680, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_Size.z
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5814664795473525681, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_Constraints
+      value: 126
+      objectReference: {fileID: 0}
+    - target: {fileID: 5938174514620546446, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 5938951527101676315, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 5938951528301636705, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
       propertyPath: StartHiddenItem
       value: 
       objectReference: {fileID: 505969818}
+    - target: {fileID: 5939590018081586254, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 5940073544827044090, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
       propertyPath: m_Name
       value: Bush1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5940073544827044090, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 5943085465932195522, guid: 41cb7ecd6ade33f4ca5f510d460b72ed, type: 3}
       propertyPath: m_RootOrder

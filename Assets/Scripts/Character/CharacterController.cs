@@ -60,8 +60,10 @@ public class CharacterController : MonoBehaviour
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY;
     }
 
-    public void ReachPosition(Vector3 desiredPosition, float followingDistance=-1, float speed=-1)
+    public bool ReachPosition(Vector3 desiredPosition, float followingDistance=-1, float speed=-1)
     {
+        bool success = false;
+
         if (followingDistance <= 0)
         {
             followingDistance = FollowingDistance;
@@ -73,11 +75,30 @@ public class CharacterController : MonoBehaviour
             speed = Speed;
         }
 
-        _ai.SetDestination(desiredPosition, followingDistance);
+        if (_currentActionCoroutine == null)
+        {
+            _currentActionCoroutine = StartCoroutine(ReachPositionCoroutine(desiredPosition, followingDistance, speed));
+            success = true;
+        }
+
+        return success;
     }
 
-    public void FollowTarget(Transform targetToFollow, float followingDistance = -1, float speed = -1)
+    private IEnumerator ReachPositionCoroutine(Vector3 desiredPosition, float followingDistance, float speed)
     {
+        _ai.SetDestination(desiredPosition, followingDistance);
+
+        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
+
+        _ai.CancelDestination();
+
+        _currentActionCoroutine = null;
+    }
+
+    public bool ReachTarget(Transform desiredTarget, float followingDistance = -1, float speed = -1)
+    {
+        bool success = false;
+
         if (followingDistance <= 0)
         {
             followingDistance = FollowingDistance;
@@ -89,7 +110,24 @@ public class CharacterController : MonoBehaviour
             speed = Speed;
         }
 
-        _ai.SetDestination(targetToFollow, followingDistance);
+        if (_currentActionCoroutine == null)
+        {
+            _currentActionCoroutine = StartCoroutine(ReachTargetCoroutine(desiredTarget, followingDistance));
+            success = true;
+        }
+
+        return success;
+    }
+
+    private IEnumerator ReachTargetCoroutine(Transform desiredTarget, float followingDistance = -1, float speed = -1)
+    {
+        _ai.SetDestination(desiredTarget, followingDistance);
+
+        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
+
+        _ai.CancelDestination();
+
+        _currentActionCoroutine = null;
     }
 
     public bool Inspect(ItemsHidingPlace itemsHidingPlace)
@@ -107,14 +145,13 @@ public class CharacterController : MonoBehaviour
 
     private IEnumerator InspectCoroutine(ItemsHidingPlace itemsHidingPlace)
     {
-        Debug.Log(itemsHidingPlace);
-        FollowTarget(itemsHidingPlace.transform);
+        ReachTarget(itemsHidingPlace.transform);
 
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
 
-        GameObject hiddenItem = itemsHidingPlace.GetItem();
+        GameObject hiddenItem = itemsHidingPlace.PopItem();
 
         if (hiddenItem != null)
         {
@@ -122,7 +159,11 @@ public class CharacterController : MonoBehaviour
             hiddenItem.GetComponent<Collider>().isTrigger = true;
             hiddenItem.transform.parent = PickedItemTransform;
             hiddenItem.transform.localPosition = Vector3.zero;
+
+            _pickedItem = hiddenItem;
         }
+
+        _currentActionCoroutine = null;
     }
 
     public bool PickItem(GameObject item)
@@ -140,7 +181,7 @@ public class CharacterController : MonoBehaviour
 
     private IEnumerator PickItemCoroutine(GameObject item)
     {
-        FollowTarget(item.transform);
+        ReachTarget(item.transform);
 
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
@@ -151,6 +192,8 @@ public class CharacterController : MonoBehaviour
         item.transform.parent = PickedItemTransform;
         item.transform.localPosition = Vector3.zero;
 
+        _pickedItem = item;
+
         _currentActionCoroutine = null;
     }
 
@@ -160,8 +203,9 @@ public class CharacterController : MonoBehaviour
 
         if (_currentActionCoroutine == null && _pickedItem != null)
         {
+            _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
+            _pickedItem.GetComponent<Collider>().isTrigger = false;
             _pickedItem.transform.parent = null;
-            _pickedItem.GetComponentInChildren<Rigidbody>().isKinematic = false;
             success = true;
         }
 
@@ -183,7 +227,9 @@ public class CharacterController : MonoBehaviour
 
     private IEnumerator ThrowItemCoroutine(GameObject item, Vector3 target)
     {
-        yield return null;
+        yield return new WaitForSeconds(0);
+
+        _currentActionCoroutine = null;
     }
 
     public void DoConfusedExpression()
@@ -198,7 +244,11 @@ public class CharacterController : MonoBehaviour
 
     private IEnumerator DoConfusedExpressionCoroutine()
     {
-        yield return null;
+        Debug.Log("Doggo is confused");
+
+        yield return new WaitForSeconds(0);
+
+        _currentActionCoroutine = null;
     }
 
     // Update is called once per frame

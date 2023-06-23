@@ -6,6 +6,8 @@ public class CharacterAI : MonoBehaviour
 {
     private CharacterController _cc;
 
+    public float Happiness { get; private set; }
+
     private void Start()
     {
         _cc = GetComponent<CharacterController>();
@@ -343,16 +345,33 @@ public class CharacterAI : MonoBehaviour
 
     private IEnumerator UnderstandCommandCoroutine(string sentence)
     {
+        float predictionProbability = 0;
         Command command = null;
 
         #region Parsing command
 
         yield return new WaitForSeconds(0);
 
-        float predictionProbability = 1;
-        string recognizedIntent = InspectIntent;
+        predictionProbability = 1;
+
+        string recognizedIntent = "";
         List<Command.RecognizedEntity> recognizedEntities = new List<Command.RecognizedEntity>();
-        recognizedEntities.Add(new Command.RecognizedEntity(ToInspectRole, "Bush"));
+
+        switch (sentence)
+        {
+            case "pick ball":
+                recognizedIntent = PickIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToPickRole, "Ball"));
+                break;
+            case "leave ball":
+                recognizedIntent = LeaveIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToLeaveRole, "Ball"));
+                break;
+            case "inspect bush":
+                recognizedIntent = InspectIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToInspectRole, "Bush"));
+                break;
+        }
 
         command = new Command(recognizedIntent, recognizedEntities);
 
@@ -364,7 +383,6 @@ public class CharacterAI : MonoBehaviour
         {
             errors.Add(UnderstandingErrorType.UnrecognisedIntent);
             _cc.DoConfusedExpression();
-            yield return null;
         } else
         {
             Context contextComponent = null;
@@ -384,65 +402,94 @@ public class CharacterAI : MonoBehaviour
 
             #endregion
 
-            if (contextComponent == null)
+            if (contextComponent != null)
             {
-                _cc.DoConfusedExpression();
-                yield return null;
-            }
+                switch (command.Intent)
+                {
+                    case ReachIntent:
 
-            switch (command.Intent)
-            {
-                case ReachIntent:
+                        List<GameObject> gosToReach = LocateRecognizedEntitiesInContext(command, ToReachRole, contextComponent);
 
-                    List<GameObject> gosToReach = LocateRecognizedEntitiesInContext(command, contextComponent, ToReachRole);
+                        if (gosToReach.Count == 0)
+                        {
+                            errors.Add(UnderstandingErrorType.MissingEntities);
+                            break;
+                        }
+                        else if (gosToReach.Count == 1)
+                        {
+                            _cc.ReachPosition(gosToReach[0].transform.position);
+                        }
+                        else if (gosToReach.Count > 1)
+                        {
+                            errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                        }
 
-                    if (gosToReach.Count == 0)
-                    {
-                        errors.Add(UnderstandingErrorType.MissingEntities);
                         break;
-                    }
-                    else if (gosToReach.Count == 1)
-                    {
-                        _cc.ReachPosition(gosToReach[0].transform.position);
-                    }
-                    else if (gosToReach.Count > 1)
-                    {
-                        errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
-                    }
+                    case PickIntent:
 
-                    break;
-                case PickIntent:
+                        List<GameObject> gosToPick = LocateRecognizedEntitiesInContext(command, ToPickRole, contextComponent);
+                        
+                        if (gosToPick.Count == 0)
+                        {
+                            errors.Add(UnderstandingErrorType.MissingEntities);
+                            break;
+                        }
+                        else if (gosToPick.Count == 1)
+                        {
+                            _cc.PickItem(gosToPick[0]);
+                        }
+                        else if (gosToPick.Count > 1)
+                        {
+                            errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                        }
 
-                    List<GameObject> gosToPick = LocateRecognizedEntitiesInContext(command, contextComponent, ToPickRole);
-
-                    break;
-                case InspectIntent:
-
-                    List<GameObject> gosToInpect = LocateRecognizedEntitiesInContext(command, contextComponent, ToInspectRole);
-
-                    if (gosToInpect.Count == 0)
-                    {
-                        errors.Add(UnderstandingErrorType.MissingEntities);
                         break;
-                    }
-                    else if (gosToInpect.Count == 1)
-                    {
-                        _cc.Inspect(gosToInpect[0].GetComponent<ItemsHidingPlace>());
-                    }
-                    else if (gosToInpect.Count > 1)
-                    {
-                        errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
-                    }
+                    case LeaveIntent:
 
-                    break;
+                        List<GameObject> gosToLeave = LocateRecognizedEntitiesInContext(command, ToLeaveRole, contextComponent);
+
+                        if (gosToLeave.Count <= 1)
+                        {
+                            _cc.LeaveItem();
+                        }
+                        else if (gosToLeave.Count > 1)
+                        {
+                            errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                        }
+
+                        break;
+                    case InspectIntent:
+
+                        List<GameObject> gosToInpect = LocateRecognizedEntitiesInContext(command, ToInspectRole, contextComponent);
+
+                        if (gosToInpect.Count == 0)
+                        {
+                            errors.Add(UnderstandingErrorType.MissingEntities);
+                            break;
+                        }
+                        else if (gosToInpect.Count == 1)
+                        {
+                            _cc.Inspect(gosToInpect[0].GetComponent<ItemsHidingPlace>());
+                        }
+                        else if (gosToInpect.Count > 1)
+                        {
+                            errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                        }
+
+                        break;
+                }
             }
+        }
 
+        if (errors.Count > 0)
+        {
+            _cc.DoConfusedExpression();
         }
 
         _understandingCommandCoroutine = null;
     }
 
-    private List<GameObject> LocateRecognizedEntitiesInContext(Command command, Context context, string role)
+    private List<GameObject> LocateRecognizedEntitiesInContext(Command command, string role, Context context)
     {
         List<GameObject> entitiesInContext = new List<GameObject>();
 

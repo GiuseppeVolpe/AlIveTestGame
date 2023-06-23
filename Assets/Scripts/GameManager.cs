@@ -36,7 +36,17 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            characterController.GetComponent<CharacterAI>().GiveCommand("Pick the ball!");
+            characterController.GetComponent<CharacterAI>().GiveCommand("pick ball");
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            characterController.GetComponent<CharacterAI>().GiveCommand("leave ball");
+        }
+
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            characterController.GetComponent<CharacterAI>().GiveCommand("inspect bush");
         }
     }
 }

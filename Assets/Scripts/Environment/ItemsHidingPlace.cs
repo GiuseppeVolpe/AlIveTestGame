@@ -4,42 +4,52 @@ using UnityEngine;
 
 public class ItemsHidingPlace : MonoBehaviour
 {
-    public Transform HiddenItemReferenceTransform;
-    public GameObject HiddenItem;
+    public Transform HiddenItemContainer;
+    public GameObject StartHiddenItem;
+
+    private GameObject _hiddenItem;
 
     // Start is called before the first frame update
     void Start()
     {
-        PutItem(HiddenItem);
+        PushItem(StartHiddenItem);
     }
 
-    public GameObject GetItem()
-    {
-        if (HiddenItem != null)
-        {
-            HiddenItem.transform.parent = null;
-            HiddenItem.SetActive(true);
-        }
-
-        return HiddenItem;
-    }
-
-    public bool PutItem(GameObject item)
+    public bool PushItem(GameObject item)
     {
         bool success = false;
 
-        if (HiddenItem != null)
+        if (_hiddenItem == null)
         {
-            if (HiddenItemReferenceTransform != null)
+            _hiddenItem = item;
+
+            if (HiddenItemContainer != null)
             {
-                HiddenItem.transform.position = HiddenItemReferenceTransform.position;
+                _hiddenItem.transform.parent = HiddenItemContainer;
+                _hiddenItem.transform.localPosition = Vector3.zero;
             }
-            HiddenItem.transform.parent = transform;
-            HiddenItem.SetActive(false);
+
+            _hiddenItem.SetActive(false);
 
             success = true;
         }
 
         return success;
+    }
+
+    public GameObject PopItem()
+    {
+        GameObject item = null;
+
+        if (_hiddenItem != null)
+        {
+            _hiddenItem.transform.parent = null;
+            _hiddenItem.SetActive(true);
+            item = _hiddenItem;
+
+            _hiddenItem = null;
+        }
+
+        return item;
     }
 }

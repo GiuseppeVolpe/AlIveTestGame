@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
-    public const string ReachableEntity = "ReachableEntity";
+    public const string ReachableEntity = "Reachable";
     public const string PickableEntity = "Pickable";
 
     public EntityData Data;
@@ -15,7 +15,7 @@ public class Entity : MonoBehaviour
 
         foreach (string syn in Data.GetGlobalSynset())
         {
-            if (syn == name)
+            if (syn.ToLower() == name.ToLower())
             {
                 answersToTheNameOf = true;
                 break;
@@ -62,7 +62,7 @@ public class Entity : MonoBehaviour
 
         foreach (string ownedEntityType in Data.GetEntityTypes())
         {
-            if (entityType == ownedEntityType)
+            if (entityType.ToLower() == ownedEntityType.ToLower())
             {
                 hasType = true;
                 break;

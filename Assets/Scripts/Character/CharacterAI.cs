@@ -4,11 +4,6 @@ using UnityEngine;
 
 public class CharacterAI : MonoBehaviour
 {
-    const float PathUpdatingRepeatRate = 1f;
-
-    const string ReachTargetIntent = "ReachTarget";
-    const string PickItemIntent = "PicktItem";
-
     private CharacterController _cc;
 
     private void Start()
@@ -17,6 +12,8 @@ public class CharacterAI : MonoBehaviour
     }
 
     #region Navigation
+
+    const float PathUpdatingRepeatRate = 1f;
 
     private const float MinDistanceThreshold = 2f;
     private const float NextWaypointDistance = 2f;
@@ -308,60 +305,162 @@ public class CharacterAI : MonoBehaviour
 
     #region NLP
 
+    const string ReachIntent = "Reach";
+    const string InspectIntent = "Inspect";
+    const string PickIntent = "Pick";
+    const string LeaveIntent = "Leave";
+    const string ThrowIntent = "Throw";
+    const string ComplimentIntent = "Compliment";
+    const string InsultIntent = "Insult";
+
+    const string ToReachRole = "ToReach";
+    const string ToInspectRole = "ToInspect";
+    const string ToPickRole = "ToPick";
+    const string ToLeaveRole = "ToLeave";
+    const string ToThrowRole = "ToThrow";
+    const string ToHitRole = "ToHit";
+
+    const float MinPredictionProbabilityThreshold = .4f;
+
+    private enum UnderstandingErrorType
+    {
+        UnrecognisedIntent,
+        MissingEntities,
+        EntitiesNumberIconsistency,
+    }
+
     private Coroutine _understandingCommandCoroutine;
 
-    public void UnderstandCommand(Command command)
+    public void GiveCommand(string sentence)
     {
-        if (_cc == null)
+        if (_cc == null || _cc.IsBusy || _understandingCommandCoroutine != null)
         {
             return;
         }
 
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1);
-        Collider contextCollider = null;
+        _understandingCommandCoroutine = StartCoroutine(UnderstandCommandCoroutine(sentence));
+    }
 
-        foreach (Collider hitCollider in hitColliders)
+    private IEnumerator UnderstandCommandCoroutine(string sentence)
+    {
+        Command command = null;
+
+        #region Parsing command
+
+        yield return new WaitForSeconds(0);
+
+        float predictionProbability = 1;
+        string recognizedIntent = InspectIntent;
+        List<Command.RecognizedEntity> recognizedEntities = new List<Command.RecognizedEntity>();
+        recognizedEntities.Add(new Command.RecognizedEntity(ToInspectRole, "Bush"));
+
+        command = new Command(recognizedIntent, recognizedEntities);
+
+        #endregion
+
+        List<UnderstandingErrorType> errors = new List<UnderstandingErrorType>();
+
+        if (predictionProbability < MinPredictionProbabilityThreshold)
         {
-            if (hitCollider.gameObject.layer == GameConsts.ContextLayer())
+            errors.Add(UnderstandingErrorType.UnrecognisedIntent);
+            _cc.DoConfusedExpression();
+            yield return null;
+        } else
+        {
+            Context contextComponent = null;
+
+            #region Getting Context
+
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1);
+
+            foreach (Collider hitCollider in hitColliders)
             {
-                contextCollider = hitCollider;
-                break;
+                if (hitCollider.gameObject.layer == GameConsts.ContextLayer())
+                {
+                    contextComponent = hitCollider.GetComponent<Context>();
+                    break;
+                }
+            }
+
+            #endregion
+
+            if (contextComponent == null)
+            {
+                _cc.DoConfusedExpression();
+                yield return null;
+            }
+
+            switch (command.Intent)
+            {
+                case ReachIntent:
+
+                    List<GameObject> gosToReach = LocateRecognizedEntitiesInContext(command, contextComponent, ToReachRole);
+
+                    if (gosToReach.Count == 0)
+                    {
+                        errors.Add(UnderstandingErrorType.MissingEntities);
+                        break;
+                    }
+                    else if (gosToReach.Count == 1)
+                    {
+                        _cc.ReachPosition(gosToReach[0].transform.position);
+                    }
+                    else if (gosToReach.Count > 1)
+                    {
+                        errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                    }
+
+                    break;
+                case PickIntent:
+
+                    List<GameObject> gosToPick = LocateRecognizedEntitiesInContext(command, contextComponent, ToPickRole);
+
+                    break;
+                case InspectIntent:
+
+                    List<GameObject> gosToInpect = LocateRecognizedEntitiesInContext(command, contextComponent, ToInspectRole);
+
+                    if (gosToInpect.Count == 0)
+                    {
+                        errors.Add(UnderstandingErrorType.MissingEntities);
+                        break;
+                    }
+                    else if (gosToInpect.Count == 1)
+                    {
+                        _cc.Inspect(gosToInpect[0].GetComponent<ItemsHidingPlace>());
+                    }
+                    else if (gosToInpect.Count > 1)
+                    {
+                        errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
+                    }
+
+                    break;
+            }
+
+        }
+
+        _understandingCommandCoroutine = null;
+    }
+
+    private List<GameObject> LocateRecognizedEntitiesInContext(Command command, Context context, string role)
+    {
+        List<GameObject> entitiesInContext = new List<GameObject>();
+
+        List<string> recognizedEntities = command.GetEntitiesWithRole(role);
+
+        foreach (string recognizedEntity in recognizedEntities)
+        {
+            foreach (Entity contextEntity in context.GetEntitiesInContext())
+            {
+                if (contextEntity.AnswersToTheNameOf(recognizedEntity))
+                {
+                    entitiesInContext.Add(contextEntity.gameObject);
+                    break;
+                }
             }
         }
 
-        if (contextCollider == null)
-        {
-            return;
-        }
-
-        Context contextComponent = contextCollider.GetComponent<Context>();
-
-        if (contextComponent == null)
-        {
-            return;
-        }
-
-        foreach (Entity entity in contextComponent.GetEntitiesInContext())
-        {
-            Debug.Log(entity.gameObject.name);
-        }
-
-        _understandingCommandCoroutine = StartCoroutine(UnderstandCommandCoroutine(command));
-    }
-
-    private IEnumerator UnderstandCommandCoroutine(Command command)
-    {
-        yield return new WaitForSeconds(0);
-
-        switch (command.Intent)
-        {
-            case ReachTargetIntent:
-
-                break;
-            case PickItemIntent:
-
-                break;
-        }
+        return entitiesInContext;
     }
 
     #endregion

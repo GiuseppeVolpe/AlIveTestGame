@@ -169,9 +169,9 @@ public class CustomUE
         float halfX = (boxCollider.size.x * 0.5f);
         float halfY = (boxCollider.size.y * 0.5f);
         float halfZ = (boxCollider.size.z * 0.5f);
-        if (point.x < halfX && point.x > -halfX &&
-           point.y < halfY && point.y > -halfY &&
-           point.z < halfZ && point.z > -halfZ)
+        if (point.x < halfX && point.x > -halfX && 
+            point.y < halfY && point.y > -halfY && 
+            point.z < halfZ && point.z > -halfZ)
             return true;
         else
             return false;
@@ -179,6 +179,10 @@ public class CustomUE
 
     public static Collider[] BoxColliderOverlaps(BoxCollider target, int layerMask, bool hitTriggers)
     {
-        return Physics.OverlapBox(target.transform.position + target.center, target.size * 0.5f, target.transform.rotation, layerMask, hitTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
+        return Physics.OverlapBox(target.transform.position + target.center,
+                                  new Vector3(target.size.x * target.transform.localScale.x, 
+                                              target.size.y * target.transform.localScale.y, 
+                                              target.size.z * target.transform.localScale.z) * 0.5f,
+                                  target.transform.rotation, layerMask, hitTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
     }
 }

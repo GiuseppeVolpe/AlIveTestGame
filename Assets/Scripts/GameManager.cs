@@ -36,10 +36,7 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            List<string> entities = new List<string>();
-            entities.Add("ball");
-
-            characterController.GetComponent<CharacterAI>().UnderstandCommand(new Command("PickItem", entities));
+            characterController.GetComponent<CharacterAI>().GiveCommand("Pick the ball!");
         }
     }
 }

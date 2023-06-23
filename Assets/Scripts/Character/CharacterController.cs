@@ -17,7 +17,17 @@ public class CharacterController : MonoBehaviour
     private SphereCollider _sc;
     private BoxCollider _bc;
 
-    private Coroutine _pickingItemCoroutine;
+    private Coroutine _currentActionCoroutine;
+
+    public bool IsBusy
+    {
+        get
+        {
+            return _currentActionCoroutine != null;
+        }
+    }
+
+    private GameObject _pickedItem;
 
     // Start is called before the first frame update
     void Start()
@@ -82,15 +92,50 @@ public class CharacterController : MonoBehaviour
         _ai.SetDestination(targetToFollow, followingDistance);
     }
 
-    public void PickItem(GameObject item)
+    public bool Inspect(ItemsHidingPlace itemsHidingPlace)
     {
-        if (_pickingItemCoroutine != null)
+        bool success = false;
+
+        if (_currentActionCoroutine == null)
         {
-            StopCoroutine(_pickingItemCoroutine);
-            _pickingItemCoroutine = null;
+            _currentActionCoroutine = StartCoroutine(InspectCoroutine(itemsHidingPlace));
+            success = true;
         }
 
-        _pickingItemCoroutine = StartCoroutine(PickItemCoroutine(item));
+        return success;
+    }
+
+    private IEnumerator InspectCoroutine(ItemsHidingPlace itemsHidingPlace)
+    {
+        Debug.Log(itemsHidingPlace);
+        FollowTarget(itemsHidingPlace.transform);
+
+        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
+
+        _ai.CancelDestination();
+
+        GameObject hiddenItem = itemsHidingPlace.GetItem();
+
+        if (hiddenItem != null)
+        {
+            hiddenItem.GetComponent<Rigidbody>().isKinematic = true;
+            hiddenItem.GetComponent<Collider>().isTrigger = true;
+            hiddenItem.transform.parent = PickedItemTransform;
+            hiddenItem.transform.localPosition = Vector3.zero;
+        }
+    }
+
+    public bool PickItem(GameObject item)
+    {
+        bool success = false;
+
+        if (_currentActionCoroutine == null)
+        {
+            _currentActionCoroutine = StartCoroutine(PickItemCoroutine(item));
+            success = true;
+        }
+
+        return success;
     }
 
     private IEnumerator PickItemCoroutine(GameObject item)
@@ -99,12 +144,61 @@ public class CharacterController : MonoBehaviour
 
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
+        _ai.CancelDestination();
+
         item.GetComponent<Rigidbody>().isKinematic = true;
         item.GetComponent<Collider>().isTrigger = true;
         item.transform.parent = PickedItemTransform;
         item.transform.localPosition = Vector3.zero;
 
-        _pickingItemCoroutine = null;
+        _currentActionCoroutine = null;
+    }
+
+    public bool LeaveItem()
+    {
+        bool success = false;
+
+        if (_currentActionCoroutine == null && _pickedItem != null)
+        {
+            _pickedItem.transform.parent = null;
+            _pickedItem.GetComponentInChildren<Rigidbody>().isKinematic = false;
+            success = true;
+        }
+
+        return success;
+    }
+
+    public bool ThrowItem(Vector3 target)
+    {
+        bool success = false;
+
+        if (_currentActionCoroutine == null && _pickedItem != null)
+        {
+            _currentActionCoroutine = StartCoroutine(ThrowItemCoroutine(_pickedItem, target));
+            success = true;
+        }
+
+        return success;
+    }
+
+    private IEnumerator ThrowItemCoroutine(GameObject item, Vector3 target)
+    {
+        yield return null;
+    }
+
+    public void DoConfusedExpression()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(DoConfusedExpressionCoroutine());
+    }
+
+    private IEnumerator DoConfusedExpressionCoroutine()
+    {
+        yield return null;
     }
 
     // Update is called once per frame

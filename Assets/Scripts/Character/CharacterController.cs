@@ -130,42 +130,6 @@ public class CharacterController : MonoBehaviour
         _currentActionCoroutine = null;
     }
 
-    public bool Inspect(ItemsHidingPlace itemsHidingPlace)
-    {
-        bool success = false;
-
-        if (_currentActionCoroutine == null)
-        {
-            _currentActionCoroutine = StartCoroutine(InspectCoroutine(itemsHidingPlace));
-            success = true;
-        }
-
-        return success;
-    }
-
-    private IEnumerator InspectCoroutine(ItemsHidingPlace itemsHidingPlace)
-    {
-        ReachTarget(itemsHidingPlace.transform);
-
-        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
-
-        _ai.CancelDestination();
-
-        GameObject hiddenItem = itemsHidingPlace.PopItem();
-
-        if (hiddenItem != null)
-        {
-            hiddenItem.GetComponent<Rigidbody>().isKinematic = true;
-            hiddenItem.GetComponent<Collider>().isTrigger = true;
-            hiddenItem.transform.parent = PickedItemTransform;
-            hiddenItem.transform.localPosition = Vector3.zero;
-
-            _pickedItem = hiddenItem;
-        }
-
-        _currentActionCoroutine = null;
-    }
-
     public bool PickItem(GameObject item)
     {
         bool success = false;
@@ -232,6 +196,42 @@ public class CharacterController : MonoBehaviour
         _currentActionCoroutine = null;
     }
 
+    public bool Inspect(ItemsHidingPlace itemsHidingPlace)
+    {
+        bool success = false;
+
+        if (_currentActionCoroutine == null)
+        {
+            _currentActionCoroutine = StartCoroutine(InspectCoroutine(itemsHidingPlace));
+            success = true;
+        }
+
+        return success;
+    }
+
+    private IEnumerator InspectCoroutine(ItemsHidingPlace itemsHidingPlace)
+    {
+        ReachTarget(itemsHidingPlace.transform);
+
+        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
+
+        _ai.CancelDestination();
+
+        GameObject hiddenItem = itemsHidingPlace.PopItem();
+
+        if (hiddenItem != null)
+        {
+            hiddenItem.GetComponent<Rigidbody>().isKinematic = true;
+            hiddenItem.GetComponent<Collider>().isTrigger = true;
+            hiddenItem.transform.parent = PickedItemTransform;
+            hiddenItem.transform.localPosition = Vector3.zero;
+
+            _pickedItem = hiddenItem;
+        }
+
+        _currentActionCoroutine = null;
+    }
+
     public void DoConfusedExpression()
     {
         if (_currentActionCoroutine != null)
@@ -245,6 +245,44 @@ public class CharacterController : MonoBehaviour
     private IEnumerator DoConfusedExpressionCoroutine()
     {
         Debug.Log("Doggo is confused");
+
+        yield return new WaitForSeconds(0);
+
+        _currentActionCoroutine = null;
+    }
+
+    public void ExpressHappiness()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(ExpressHappinessCoroutine());
+    }
+
+    private IEnumerator ExpressHappinessCoroutine()
+    {
+        Debug.Log("Doggo is happy!");
+
+        yield return new WaitForSeconds(0);
+
+        _currentActionCoroutine = null;
+    }
+
+    public void ExpressSadness()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(ExpressSadnessCoroutine());
+    }
+
+    private IEnumerator ExpressSadnessCoroutine()
+    {
+        Debug.Log("Doggo is sad... :(");
 
         yield return new WaitForSeconds(0);
 

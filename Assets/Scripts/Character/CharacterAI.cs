@@ -6,11 +6,17 @@ public class CharacterAI : MonoBehaviour
 {
     private CharacterController _cc;
 
+    public const float HappinessStartValue = 100;
+    public const float ComplimentIncrementValue = 5;
+    public const float InsultDecrementValue = 15;
+
     public float Happiness { get; private set; }
 
     private void Start()
     {
         _cc = GetComponent<CharacterController>();
+
+        Happiness = HappinessStartValue;
     }
 
     #region Navigation
@@ -308,10 +314,10 @@ public class CharacterAI : MonoBehaviour
     #region NLP
 
     const string ReachIntent = "Reach";
-    const string InspectIntent = "Inspect";
     const string PickIntent = "Pick";
     const string LeaveIntent = "Leave";
     const string ThrowIntent = "Throw";
+    const string InspectIntent = "Inspect";
     const string ComplimentIntent = "Compliment";
     const string InsultIntent = "Insult";
 
@@ -458,6 +464,8 @@ public class CharacterAI : MonoBehaviour
                         }
 
                         break;
+                    case ThrowIntent:
+                        break;
                     case InspectIntent:
 
                         List<GameObject> gosToInpect = LocateRecognizedEntitiesInContext(command, ToInspectRole, contextComponent);
@@ -476,6 +484,12 @@ public class CharacterAI : MonoBehaviour
                             errors.Add(UnderstandingErrorType.EntitiesNumberIconsistency);
                         }
 
+                        break;
+                    case ComplimentIntent:
+                        Happiness += ComplimentIncrementValue;
+                        break;
+                    case InsultIntent:
+                        Happiness -= InsultDecrementValue;
                         break;
                 }
             }

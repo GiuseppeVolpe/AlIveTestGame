@@ -265,7 +265,30 @@ public class CharacterController : MonoBehaviour
 
         _ai.CancelDestination();
 
-        yield return RotateTowards(desiredPosition);
+        Vector3 lookDirection = (desiredPosition - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    break;
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
 
         _currentActionCoroutine = null;
     }
@@ -278,7 +301,30 @@ public class CharacterController : MonoBehaviour
 
         _ai.CancelDestination();
 
-        yield return RotateTowards(desiredTarget.position);
+        Vector3 lookDirection = (desiredTarget.position - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    break;
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
 
         _currentActionCoroutine = null;
     }
@@ -293,7 +339,30 @@ public class CharacterController : MonoBehaviour
 
         IsDoingBlockingAction = true;
 
-        yield return RotateTowards(item.transform.position);
+        Vector3 lookDirection = (item.transform.position - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    break;
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
 
         item.GetComponent<Rigidbody>().isKinematic = true;
         item.GetComponent<Collider>().isTrigger = true;
@@ -316,7 +385,32 @@ public class CharacterController : MonoBehaviour
 
         IsDoingBlockingAction = true;
 
-        yield return RotateTowards(target.transform.position);
+        Vector3 targetPosition = target.transform.position;
+
+        Vector3 lookDirection = (targetPosition - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    break;
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
 
         GameObject thrownItem = _pickedItem;
         _pickedItem = null;
@@ -324,8 +418,6 @@ public class CharacterController : MonoBehaviour
         thrownItem.GetComponent<Rigidbody>().isKinematic = true;
         thrownItem.GetComponent<Collider>().isTrigger = true;
         thrownItem.transform.parent = null;
-
-        Vector3 targetPosition = target.transform.position;
 
         Coroutine lerpCoroutine =
             StartCoroutine(CustomUE.ParabolicLerpPosition(thrownItem, thrownItem.transform.position, targetPosition, 10, Vector3.up));
@@ -358,7 +450,30 @@ public class CharacterController : MonoBehaviour
 
         IsDoingBlockingAction = true;
 
-        yield return RotateTowards(itemsHidingPlace.transform.position);
+        Vector3 lookDirection = (itemsHidingPlace.transform.position - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    break;
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
 
         GameObject hiddenItem = itemsHidingPlace.PopItem();
 
@@ -440,8 +555,6 @@ public class CharacterController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        IDBA = IsDoingBlockingAction;
-
         float normalizedSpeed = _rb.velocity.magnitude / MoveSpeed;
         _ac.SetFloat("Speed", normalizedSpeed);
     }

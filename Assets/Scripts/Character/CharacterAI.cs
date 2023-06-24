@@ -6,17 +6,11 @@ public class CharacterAI : MonoBehaviour
 {
     private CharacterController _cc;
 
-    public const float HappinessStartValue = 100;
-    public const float ComplimentIncrementValue = 5;
-    public const float InsultDecrementValue = 15;
-
     public float Happiness { get; private set; }
 
     private void Start()
     {
         _cc = GetComponent<CharacterController>();
-
-        Happiness = HappinessStartValue;
     }
 
     #region Navigation
@@ -335,6 +329,7 @@ public class CharacterAI : MonoBehaviour
         UnrecognisedIntent,
         MissingEntities,
         EntitiesNumberIconsistency,
+        InvalidAction,
     }
 
     private Coroutine _understandingCommandCoroutine;
@@ -382,6 +377,10 @@ public class CharacterAI : MonoBehaviour
                 recognizedEntities.Add(new Command.RecognizedEntity(ToThrowRole, "Ball"));
                 recognizedEntities.Add(new Command.RecognizedEntity(ToHitRole, "Pot"));
                 break;
+            case "reach bush":
+                recognizedIntent = ReachIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToReachRole, "Bush"));
+                break;
         }
 
         command = new Command(recognizedIntent, recognizedEntities);
@@ -393,7 +392,6 @@ public class CharacterAI : MonoBehaviour
         if (predictionProbability < MinPredictionProbabilityThreshold)
         {
             errors.Add(UnderstandingErrorType.UnrecognisedIntent);
-            _cc.DoConfusedExpression();
         } else
         {
             Context contextComponent = null;
@@ -413,6 +411,8 @@ public class CharacterAI : MonoBehaviour
 
             #endregion
 
+            bool success;
+
             if (contextComponent != null)
             {
                 switch (command.Intent)
@@ -428,7 +428,12 @@ public class CharacterAI : MonoBehaviour
                         }
                         else if (gosToReach.Count == 1)
                         {
-                            _cc.ReachPosition(gosToReach[0].transform.position);
+                            success = _cc.ReachPosition(gosToReach[0].transform.position);
+
+                            if (!success)
+                            {
+                                errors.Add(UnderstandingErrorType.InvalidAction);
+                            }
                         }
                         else if (gosToReach.Count > 1)
                         {
@@ -447,7 +452,12 @@ public class CharacterAI : MonoBehaviour
                         }
                         else if (gosToPick.Count == 1)
                         {
-                            _cc.PickItem(gosToPick[0]);
+                            success = _cc.PickItem(gosToPick[0]);
+
+                            if (!success)
+                            {
+                                errors.Add(UnderstandingErrorType.InvalidAction);
+                            }
                         }
                         else if (gosToPick.Count > 1)
                         {
@@ -461,7 +471,12 @@ public class CharacterAI : MonoBehaviour
 
                         if (gosToLeave.Count <= 1)
                         {
-                            _cc.LeaveItem();
+                            success = _cc.LeaveItem();
+
+                            if (!success)
+                            {
+                                errors.Add(UnderstandingErrorType.InvalidAction);
+                            }
                         }
                         else if (gosToLeave.Count > 1)
                         {
@@ -476,14 +491,25 @@ public class CharacterAI : MonoBehaviour
 
                         if (gosToThrow.Count <= 1)
                         {
-                            _cc.LeaveItem();
+                            GameObject goToThrow = null;
+
+                            if (gosToThrow.Count == 1)
+                            {
+                                goToThrow = gosToThrow[0];
+                            }
 
                             if (gosToHit.Count == 0)
                             {
                                 errors.Add(UnderstandingErrorType.MissingEntities);
                             }
-                            else if (gosToHit.Count == 1) {
-                                _cc.ThrowItem(gosToHit[0]);
+                            else if (gosToHit.Count == 1) 
+                            {
+                                success = _cc.ThrowItem(goToThrow, gosToHit[0]);
+
+                                if (!success)
+                                {
+                                    errors.Add(UnderstandingErrorType.InvalidAction);
+                                }
                             }
                             else if (gosToHit.Count > 1)
                             {
@@ -507,7 +533,12 @@ public class CharacterAI : MonoBehaviour
                         }
                         else if (gosToInpect.Count == 1)
                         {
-                            _cc.Inspect(gosToInpect[0].GetComponent<ItemsHidingPlace>());
+                            success = _cc.Inspect(gosToInpect[0].GetComponent<ItemsHidingPlace>());
+
+                            if (!success)
+                            {
+                                errors.Add(UnderstandingErrorType.InvalidAction);
+                            }
                         }
                         else if (gosToInpect.Count > 1)
                         {
@@ -516,10 +547,10 @@ public class CharacterAI : MonoBehaviour
 
                         break;
                     case ComplimentIntent:
-                        Happiness += ComplimentIncrementValue;
+                        _cc.ExpressHappiness();
                         break;
                     case InsultIntent:
-                        Happiness -= InsultDecrementValue;
+                        _cc.ExpressSadness();
                         break;
                 }
             }

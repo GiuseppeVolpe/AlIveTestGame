@@ -5,17 +5,26 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class CharacterController : MonoBehaviour
 {
-    public float FollowingDistance;
-    public float Speed = 10;
-    public float RotationLerping = 3;
+    public const float HappinessStartValue = 100;
+    public const float ComplimentIncrementValue = 5;
+    public const float InsultDecrementValue = 15;
 
+    public float FollowingDistance;
+    [Range(0, .6f)]
+    public float RotateSpeed = .1f;
+    public float MoveSpeed = 20;
+    public float RotationLerping = 3;
     public Transform PickedItemTransform;
+    [Range(1, Mathf.Infinity)]
+    public float ThrowDistance = 5;
 
     private CharacterAI _ai;
     private Rigidbody _rb;
     private Animator _ac;
     private SphereCollider _sc;
     private BoxCollider _bc;
+
+    public float Happiness { get; private set; }
 
     private Coroutine _currentActionCoroutine;
 
@@ -58,6 +67,8 @@ public class CharacterController : MonoBehaviour
         _rb.mass = 50;
         _rb.drag = 4;
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY;
+
+        Happiness = HappinessStartValue;
     }
 
     public bool ReachPosition(Vector3 desiredPosition, float followingDistance=-1, float speed=-1)
@@ -72,7 +83,7 @@ public class CharacterController : MonoBehaviour
 
         if (speed <= 0)
         {
-            speed = Speed;
+            speed = MoveSpeed;
         }
 
         if (_currentActionCoroutine == null)
@@ -92,6 +103,8 @@ public class CharacterController : MonoBehaviour
 
         _ai.CancelDestination();
 
+        yield return RotateTowards(desiredPosition);
+
         _currentActionCoroutine = null;
     }
 
@@ -107,7 +120,7 @@ public class CharacterController : MonoBehaviour
 
         if (speed <= 0)
         {
-            speed = Speed;
+            speed = MoveSpeed;
         }
 
         if (_currentActionCoroutine == null)
@@ -126,6 +139,8 @@ public class CharacterController : MonoBehaviour
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
+
+        yield return RotateTowards(desiredTarget.position);
 
         _currentActionCoroutine = null;
     }
@@ -150,6 +165,8 @@ public class CharacterController : MonoBehaviour
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
+
+        yield return RotateTowards(item.transform.position);
 
         item.GetComponent<Rigidbody>().isKinematic = true;
         item.GetComponent<Collider>().isTrigger = true;
@@ -176,14 +193,17 @@ public class CharacterController : MonoBehaviour
         return success;
     }
 
-    public bool ThrowItem(GameObject target)
+    public bool ThrowItem(GameObject item, GameObject target)
     {
         bool success = false;
 
-        if (_currentActionCoroutine == null && _pickedItem != null)
+        if (item == null || item == _pickedItem)
         {
-            _currentActionCoroutine = StartCoroutine(ThrowItemCoroutine(_pickedItem, target));
-            success = true;
+            if (_currentActionCoroutine == null && _pickedItem != null)
+            {
+                _currentActionCoroutine = StartCoroutine(ThrowItemCoroutine(_pickedItem, target));
+                success = true;
+            }
         }
 
         return success;
@@ -191,12 +211,27 @@ public class CharacterController : MonoBehaviour
 
     private IEnumerator ThrowItemCoroutine(GameObject item, GameObject target)
     {
+        _ai.SetDestination(target.transform, ThrowDistance);
+
+        yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
+
+        _ai.CancelDestination();
+
+        yield return RotateTowards(target.transform.position);
+
+        _pickedItem.GetComponent<Rigidbody>().isKinematic = true;
+        _pickedItem.GetComponent<Collider>().isTrigger = true;
+        _pickedItem.transform.parent = null;
+
         Vector3 targetPosition = target.transform.position;
 
         Coroutine lerpCoroutine = 
             StartCoroutine(CustomUE.ParabolicLerpPosition(item, item.transform.position, targetPosition, 10, Vector3.up));
 
         yield return new WaitUntil(() => Vector3.Distance(item.transform.position, targetPosition) < 1);
+
+        _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
+        _pickedItem.GetComponent<Collider>().isTrigger = false;
 
         Hittable hittableComponent = target.GetComponentInChildren<Hittable>();
 
@@ -230,6 +265,8 @@ public class CharacterController : MonoBehaviour
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
+
+        yield return RotateTowards(itemsHidingPlace.transform.position);
 
         GameObject hiddenItem = itemsHidingPlace.PopItem();
 
@@ -278,6 +315,7 @@ public class CharacterController : MonoBehaviour
     private IEnumerator ExpressHappinessCoroutine()
     {
         Debug.Log("Doggo is happy!");
+        Happiness += ComplimentIncrementValue;
 
         yield return new WaitForSeconds(0);
 
@@ -297,16 +335,47 @@ public class CharacterController : MonoBehaviour
     private IEnumerator ExpressSadnessCoroutine()
     {
         Debug.Log("Doggo is sad... :(");
+        Happiness -= InsultDecrementValue;
 
         yield return new WaitForSeconds(0);
 
         _currentActionCoroutine = null;
     }
 
+    private IEnumerator RotateTowards(Vector3 targetPosition)
+    {
+        Vector3 lookDirection = (targetPosition - transform.position).normalized;
+
+        if (lookDirection != Vector3.zero)
+        {
+            Quaternion startRotation = transform.rotation;
+            Quaternion desiredRotation = CustomUE.TurretLookRotation(lookDirection, transform.up);
+            float lerpFactor = 0;
+            Quaternion oldRotation;
+
+            while (transform.rotation != desiredRotation)
+            {
+                lerpFactor += RotateSpeed;
+
+                oldRotation = transform.rotation;
+                transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, lerpFactor);
+
+                if (transform.rotation == oldRotation)
+                {
+                    Debug.Log("Stopped rotation here");
+                    break;
+                }
+
+                Debug.Log("still rotating");
+                yield return new WaitForFixedUpdate();
+            }
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
-        float normalizedSpeed = _rb.velocity.magnitude / Speed;
+        float normalizedSpeed = _rb.velocity.magnitude / MoveSpeed;
         _ac.SetFloat("Speed", normalizedSpeed);
     }
 
@@ -314,7 +383,7 @@ public class CharacterController : MonoBehaviour
     {
         if (_ai.RawDesiredDirection != null && _ai.RawDesiredDirection != Vector3.zero)
         {
-            _rb.AddForce(_ai.RawDesiredDirection * Speed * _rb.mass);
+            _rb.AddForce(_ai.RawDesiredDirection * MoveSpeed * _rb.mass);
 
             #region Calculating rotation
 

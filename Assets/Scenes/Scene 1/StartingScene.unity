@@ -107,7 +107,7 @@ NavMeshSettings:
     serializedVersion: 2
     agentTypeID: 0
     agentRadius: 1.5
-    agentHeight: 4
+    agentHeight: 3
     agentSlope: 45
     agentClimb: 1.1
     ledgeDropHeight: 0
@@ -156,7 +156,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2147483647
   characterController: {fileID: 2076379400}
-  ball: {fileID: 505969818}
 --- !u!4 &307278725
 Transform:
   m_ObjectHideFlags: 0
@@ -428,8 +427,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 65449959130551738, guid: 7451ef01e53127446b9d7406220542f6, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 65449959130551738, guid: 7451ef01e53127446b9d7406220542f6, type: 3}
       propertyPath: m_IsTrigger
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114749360120129354, guid: 7451ef01e53127446b9d7406220542f6, type: 3}
@@ -1160,9 +1163,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FollowingDistance: 0
-  Speed: 20
+  RotateSpeed: 0.1
+  MoveSpeed: 20
   RotationLerping: 5
   PickedItemTransform: {fileID: 1463577118}
+  ThrowDistance: 6
 --- !u!135 &2076379401
 SphereCollider:
   m_ObjectHideFlags: 0

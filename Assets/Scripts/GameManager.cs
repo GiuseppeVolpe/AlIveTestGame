@@ -6,7 +6,6 @@ public class GameManager : MonoBehaviour
 {
     public LayerMask RaycastLayerMax;
     public CharacterController characterController;
-    public GameObject ball;
 
     // Start is called before the first frame update
     void Start()
@@ -17,6 +16,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (characterController == null)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             if (Camera.main == null)
@@ -52,6 +56,11 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.T))
         {
             characterController.GetComponent<CharacterAI>().GiveCommand("throw against pot");
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            characterController.GetComponent<CharacterAI>().GiveCommand("reach bush");
         }
     }
 }

@@ -6,6 +6,6 @@ public class Pot : Hittable
 {
     public override void OnHit()
     {
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 }

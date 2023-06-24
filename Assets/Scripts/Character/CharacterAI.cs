@@ -6,8 +6,6 @@ public class CharacterAI : MonoBehaviour
 {
     private CharacterController _cc;
 
-    public float Happiness { get; private set; }
-
     private void Start()
     {
         _cc = GetComponent<CharacterController>();
@@ -426,7 +424,8 @@ public class CharacterAI : MonoBehaviour
                 {
                     case ReachIntent:
 
-                        List<GameObject> gosToReach = LocateRecognizedEntitiesInContext(command, ToReachRole, contextComponent);
+                        List<GameObject> gosToReach = 
+                            LocateRecognizedEntitiesInContext(command, ToReachRole, Entity.ReachableEntity, contextComponent);
 
                         if (gosToReach.Count == 0)
                         {
@@ -450,7 +449,8 @@ public class CharacterAI : MonoBehaviour
                         break;
                     case PickIntent:
 
-                        List<GameObject> gosToPick = LocateRecognizedEntitiesInContext(command, ToPickRole, contextComponent);
+                        List<GameObject> gosToPick = 
+                            LocateRecognizedEntitiesInContext(command, ToPickRole, Entity.PickableEntity, contextComponent);
                         
                         if (gosToPick.Count == 0)
                         {
@@ -474,7 +474,8 @@ public class CharacterAI : MonoBehaviour
                         break;
                     case LeaveIntent:
 
-                        List<GameObject> gosToLeave = LocateRecognizedEntitiesInContext(command, ToLeaveRole, contextComponent);
+                        List<GameObject> gosToLeave = 
+                            LocateRecognizedEntitiesInContext(command, ToLeaveRole, Entity.PickableEntity, contextComponent);
 
                         if (gosToLeave.Count <= 1)
                         {
@@ -493,8 +494,10 @@ public class CharacterAI : MonoBehaviour
                         break;
                     case ThrowIntent:
 
-                        List<GameObject> gosToThrow = LocateRecognizedEntitiesInContext(command, ToThrowRole, contextComponent);
-                        List<GameObject> gosToHit = LocateRecognizedEntitiesInContext(command, ToHitRole, contextComponent);
+                        List<GameObject> gosToThrow = 
+                            LocateRecognizedEntitiesInContext(command, ToThrowRole, Entity.ThrowableEntity, contextComponent);
+                        List<GameObject> gosToHit = 
+                            LocateRecognizedEntitiesInContext(command, ToHitRole, Entity.HittableEntity, contextComponent);
 
                         if (gosToThrow.Count <= 1)
                         {
@@ -531,7 +534,8 @@ public class CharacterAI : MonoBehaviour
                         break;
                     case InspectIntent:
 
-                        List<GameObject> gosToInpect = LocateRecognizedEntitiesInContext(command, ToInspectRole, contextComponent);
+                        List<GameObject> gosToInpect = 
+                            LocateRecognizedEntitiesInContext(command, ToInspectRole, Entity.InspectableEntity, contextComponent);
 
                         if (gosToInpect.Count == 0)
                         {
@@ -571,7 +575,7 @@ public class CharacterAI : MonoBehaviour
         _understandingCommandCoroutine = null;
     }
 
-    private List<GameObject> LocateRecognizedEntitiesInContext(Command command, string role, Context context)
+    private List<GameObject> LocateRecognizedEntitiesInContext(Command command, string role, string entityType, Context context)
     {
         List<GameObject> entitiesInContext = new List<GameObject>();
 
@@ -581,7 +585,7 @@ public class CharacterAI : MonoBehaviour
         {
             foreach (Entity contextEntity in context.GetEntitiesInContext())
             {
-                if (contextEntity.AnswersToTheNameOf(recognizedEntity))
+                if (contextEntity.AnswersToTheNameOf(recognizedEntity) && contextEntity.HasType(entityType))
                 {
                     entitiesInContext.Add(contextEntity.gameObject);
                     break;

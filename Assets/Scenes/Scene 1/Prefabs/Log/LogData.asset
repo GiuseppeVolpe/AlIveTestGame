@@ -23,4 +23,8 @@ MonoBehaviour:
     - Key: EN
       Value:
       - Log
-  Types: []
+  Types:
+  - Reachable
+  - Pickable
+  - Throwable
+  - Hittable

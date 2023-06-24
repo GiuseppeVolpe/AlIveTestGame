@@ -20,4 +20,7 @@ MonoBehaviour:
     - Key: EN
       Value:
       - Bush
-  Types: []
+  Types:
+  - Reachable
+  - Inspectable
+  - Hittable

@@ -23,4 +23,8 @@ MonoBehaviour:
       Value:
       - ball
       - sphere
-  Types: []
+  Types:
+  - Reachable
+  - Pickable
+  - Throwable
+  - Hittable

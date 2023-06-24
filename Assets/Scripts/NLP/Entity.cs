@@ -6,6 +6,9 @@ public class Entity : MonoBehaviour
 {
     public const string ReachableEntity = "Reachable";
     public const string PickableEntity = "Pickable";
+    public const string ThrowableEntity = "Throwable";
+    public const string HittableEntity = "Hittable";
+    public const string InspectableEntity = "Inspectable";
 
     public EntityData Data;
 

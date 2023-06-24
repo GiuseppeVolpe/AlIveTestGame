@@ -24,6 +24,7 @@ MonoBehaviour:
       - Pot
       - Plant
       - Potted plant
-    - Key: 
-      Value: []
-  Types: []
+  Types:
+  - Reachable
+  - Hittable
+  - Inspectable

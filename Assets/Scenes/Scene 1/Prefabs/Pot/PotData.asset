@@ -10,14 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6dec44aefc3f4214db4236169e480742, type: 3}
-  m_Name: Bush
+  m_Name: PotData
   m_EditorClassIdentifier: 
   Synset:
     Dict:
     - Key: ITA
       Value:
-      - Cespuglio
+      - Vaso
+      - Pianta
+      - Pianta nel vaso
     - Key: EN
       Value:
-      - Bush
+      - Pot
+      - Plant
+      - Potted plant
+    - Key: 
+      Value: []
   Types: []

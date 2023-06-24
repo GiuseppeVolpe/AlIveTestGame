@@ -10,20 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6dec44aefc3f4214db4236169e480742, type: 3}
-  m_Name: Pot
+  m_Name: LogData
   m_EditorClassIdentifier: 
   Synset:
     Dict:
     - Key: ITA
       Value:
-      - Vaso
-      - Pianta
-      - Pianta nel vaso
+      - Ramo
+      - Ramoscello
+      - Bastone
+      - Bacchetta
     - Key: EN
       Value:
-      - Pot
-      - Plant
-      - Potted plant
-    - Key: 
-      Value: []
+      - Log
   Types: []

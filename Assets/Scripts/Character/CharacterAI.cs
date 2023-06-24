@@ -336,7 +336,7 @@ public class CharacterAI : MonoBehaviour
 
     public void GiveCommand(string sentence)
     {
-        if (_cc == null || _cc.IsBusy || _understandingCommandCoroutine != null)
+        if (_cc == null || (_cc.IsBusy && _cc.IsDoingBlockingAction) || _understandingCommandCoroutine != null)
         {
             return;
         }
@@ -346,8 +346,8 @@ public class CharacterAI : MonoBehaviour
 
     private IEnumerator UnderstandCommandCoroutine(string sentence)
     {
-        float predictionProbability = 0;
-        Command command = null;
+        float predictionProbability;
+        Command command;
 
         #region Parsing command
 
@@ -368,13 +368,20 @@ public class CharacterAI : MonoBehaviour
                 recognizedIntent = LeaveIntent;
                 recognizedEntities.Add(new Command.RecognizedEntity(ToLeaveRole, "Ball"));
                 break;
+            case "pick log":
+                recognizedIntent = PickIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToPickRole, "Log"));
+                break;
+            case "leave log":
+                recognizedIntent = LeaveIntent;
+                recognizedEntities.Add(new Command.RecognizedEntity(ToLeaveRole, "Log"));
+                break;
             case "inspect bush":
                 recognizedIntent = InspectIntent;
                 recognizedEntities.Add(new Command.RecognizedEntity(ToInspectRole, "Bush"));
                 break;
             case "throw against pot":
                 recognizedIntent = ThrowIntent;
-                recognizedEntities.Add(new Command.RecognizedEntity(ToThrowRole, "Ball"));
                 recognizedEntities.Add(new Command.RecognizedEntity(ToHitRole, "Pot"));
                 break;
             case "reach bush":

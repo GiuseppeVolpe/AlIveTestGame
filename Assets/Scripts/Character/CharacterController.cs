@@ -36,6 +36,9 @@ public class CharacterController : MonoBehaviour
         }
     }
 
+    public bool IDBA;
+    public bool IsDoingBlockingAction { get; private set; }
+
     private GameObject _pickedItem;
 
     // Start is called before the first frame update
@@ -69,6 +72,8 @@ public class CharacterController : MonoBehaviour
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY;
 
         Happiness = HappinessStartValue;
+
+        IsDoingBlockingAction = false;
     }
 
     public bool ReachPosition(Vector3 desiredPosition, float followingDistance=-1, float speed=-1)
@@ -80,20 +85,177 @@ public class CharacterController : MonoBehaviour
             followingDistance = FollowingDistance;
         }
 
-
         if (speed <= 0)
         {
             speed = MoveSpeed;
         }
 
-        if (_currentActionCoroutine == null)
+        if (!IsDoingBlockingAction)
         {
+            if (_currentActionCoroutine != null)
+            {
+                StopCoroutine(_currentActionCoroutine);
+                _currentActionCoroutine = null;
+            }
+
             _currentActionCoroutine = StartCoroutine(ReachPositionCoroutine(desiredPosition, followingDistance, speed));
             success = true;
         }
 
         return success;
     }
+
+    public bool ReachTarget(Transform desiredTarget, float followingDistance = -1, float speed = -1)
+    {
+        bool success = false;
+
+        if (followingDistance <= 0)
+        {
+            followingDistance = FollowingDistance;
+        }
+
+        if (speed <= 0)
+        {
+            speed = MoveSpeed;
+        }
+
+        if (!IsDoingBlockingAction)
+        {
+            if (_currentActionCoroutine != null)
+            {
+                StopCoroutine(_currentActionCoroutine);
+                _currentActionCoroutine = null;
+            }
+
+            _currentActionCoroutine = StartCoroutine(ReachTargetCoroutine(desiredTarget, followingDistance));
+            success = true;
+        }
+
+        return success;
+    }
+
+    public bool PickItem(GameObject item)
+    {
+        bool success = false;
+
+        if (!IsDoingBlockingAction)
+        {
+            if (item != null)
+            {
+                if (_pickedItem != null)
+                {
+                    LeaveItem();
+                }
+
+                if (_currentActionCoroutine != null)
+                {
+                    StopCoroutine(_currentActionCoroutine);
+                    _currentActionCoroutine = null;
+                }
+
+                _currentActionCoroutine = StartCoroutine(PickItemCoroutine(item));
+                success = true;
+            }
+        }
+
+        return success;
+    }
+
+    public bool LeaveItem()
+    {
+        bool success = false;
+
+        if (_pickedItem != null)
+        {
+            _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
+            _pickedItem.GetComponent<Collider>().isTrigger = false;
+            _pickedItem.transform.parent = null;
+            _pickedItem = null;
+            success = true;
+        }
+
+        return success;
+    }
+
+    public bool ThrowItem(GameObject item, GameObject target)
+    {
+        bool success = false;
+
+        Debug.Log(_pickedItem);
+
+        if (item == null || item == _pickedItem)
+        {
+            if (!IsDoingBlockingAction)
+            {
+                if (_currentActionCoroutine != null)
+                {
+                    StopCoroutine(_currentActionCoroutine);
+                    _currentActionCoroutine = null;
+                }
+
+                _currentActionCoroutine = StartCoroutine(ThrowItemCoroutine(target));
+                success = true;
+            }
+        }
+
+        return success;
+    }
+
+    public bool Inspect(ItemsHidingPlace itemsHidingPlace)
+    {
+        bool success = false;
+
+        if (!IsDoingBlockingAction)
+        {
+            if (_pickedItem != null)
+            {
+                LeaveItem();
+            }
+
+            if (_currentActionCoroutine != null)
+            {
+                StopCoroutine(_currentActionCoroutine);
+                _currentActionCoroutine = null;
+            }
+
+            _currentActionCoroutine = StartCoroutine(InspectCoroutine(itemsHidingPlace));
+            success = true;
+        }
+
+        return success;
+    }
+
+    public void DoConfusedExpression()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(DoConfusedExpressionCoroutine());
+    }
+
+    public void ExpressHappiness()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(ExpressHappinessCoroutine());
+    }
+
+    public void ExpressSadness()
+    {
+        if (_currentActionCoroutine != null)
+        {
+            return;
+        }
+
+        _currentActionCoroutine = StartCoroutine(ExpressSadnessCoroutine());
+    }
+
+    #region Coroutines
 
     private IEnumerator ReachPositionCoroutine(Vector3 desiredPosition, float followingDistance, float speed)
     {
@@ -106,30 +268,6 @@ public class CharacterController : MonoBehaviour
         yield return RotateTowards(desiredPosition);
 
         _currentActionCoroutine = null;
-    }
-
-    public bool ReachTarget(Transform desiredTarget, float followingDistance = -1, float speed = -1)
-    {
-        bool success = false;
-
-        if (followingDistance <= 0)
-        {
-            followingDistance = FollowingDistance;
-        }
-
-
-        if (speed <= 0)
-        {
-            speed = MoveSpeed;
-        }
-
-        if (_currentActionCoroutine == null)
-        {
-            _currentActionCoroutine = StartCoroutine(ReachTargetCoroutine(desiredTarget, followingDistance));
-            success = true;
-        }
-
-        return success;
     }
 
     private IEnumerator ReachTargetCoroutine(Transform desiredTarget, float followingDistance = -1, float speed = -1)
@@ -145,19 +283,6 @@ public class CharacterController : MonoBehaviour
         _currentActionCoroutine = null;
     }
 
-    public bool PickItem(GameObject item)
-    {
-        bool success = false;
-
-        if (_currentActionCoroutine == null)
-        {
-            _currentActionCoroutine = StartCoroutine(PickItemCoroutine(item));
-            success = true;
-        }
-
-        return success;
-    }
-
     private IEnumerator PickItemCoroutine(GameObject item)
     {
         ReachTarget(item.transform);
@@ -165,6 +290,8 @@ public class CharacterController : MonoBehaviour
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
+
+        IsDoingBlockingAction = true;
 
         yield return RotateTowards(item.transform.position);
 
@@ -175,41 +302,11 @@ public class CharacterController : MonoBehaviour
 
         _pickedItem = item;
 
+        IsDoingBlockingAction = false;
         _currentActionCoroutine = null;
     }
 
-    public bool LeaveItem()
-    {
-        bool success = false;
-
-        if (_currentActionCoroutine == null && _pickedItem != null)
-        {
-            _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
-            _pickedItem.GetComponent<Collider>().isTrigger = false;
-            _pickedItem.transform.parent = null;
-            success = true;
-        }
-
-        return success;
-    }
-
-    public bool ThrowItem(GameObject item, GameObject target)
-    {
-        bool success = false;
-
-        if (item == null || item == _pickedItem)
-        {
-            if (_currentActionCoroutine == null && _pickedItem != null)
-            {
-                _currentActionCoroutine = StartCoroutine(ThrowItemCoroutine(_pickedItem, target));
-                success = true;
-            }
-        }
-
-        return success;
-    }
-
-    private IEnumerator ThrowItemCoroutine(GameObject item, GameObject target)
+    private IEnumerator ThrowItemCoroutine(GameObject target)
     {
         _ai.SetDestination(target.transform, ThrowDistance);
 
@@ -217,21 +314,26 @@ public class CharacterController : MonoBehaviour
 
         _ai.CancelDestination();
 
+        IsDoingBlockingAction = true;
+
         yield return RotateTowards(target.transform.position);
 
-        _pickedItem.GetComponent<Rigidbody>().isKinematic = true;
-        _pickedItem.GetComponent<Collider>().isTrigger = true;
-        _pickedItem.transform.parent = null;
+        GameObject thrownItem = _pickedItem;
+        _pickedItem = null;
+
+        thrownItem.GetComponent<Rigidbody>().isKinematic = true;
+        thrownItem.GetComponent<Collider>().isTrigger = true;
+        thrownItem.transform.parent = null;
 
         Vector3 targetPosition = target.transform.position;
 
-        Coroutine lerpCoroutine = 
-            StartCoroutine(CustomUE.ParabolicLerpPosition(item, item.transform.position, targetPosition, 10, Vector3.up));
+        Coroutine lerpCoroutine =
+            StartCoroutine(CustomUE.ParabolicLerpPosition(thrownItem, thrownItem.transform.position, targetPosition, 10, Vector3.up));
 
-        yield return new WaitUntil(() => Vector3.Distance(item.transform.position, targetPosition) < 1);
+        yield return new WaitUntil(() => Vector3.Distance(thrownItem.transform.position, targetPosition) < 1);
 
-        _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
-        _pickedItem.GetComponent<Collider>().isTrigger = false;
+        thrownItem.GetComponent<Rigidbody>().isKinematic = false;
+        thrownItem.GetComponent<Collider>().isTrigger = false;
 
         Hittable hittableComponent = target.GetComponentInChildren<Hittable>();
 
@@ -242,20 +344,8 @@ public class CharacterController : MonoBehaviour
 
         StopCoroutine(lerpCoroutine);
 
+        IsDoingBlockingAction = false;
         _currentActionCoroutine = null;
-    }
-
-    public bool Inspect(ItemsHidingPlace itemsHidingPlace)
-    {
-        bool success = false;
-
-        if (_currentActionCoroutine == null)
-        {
-            _currentActionCoroutine = StartCoroutine(InspectCoroutine(itemsHidingPlace));
-            success = true;
-        }
-
-        return success;
     }
 
     private IEnumerator InspectCoroutine(ItemsHidingPlace itemsHidingPlace)
@@ -265,6 +355,8 @@ public class CharacterController : MonoBehaviour
         yield return new WaitUntil(() => _ai.IsNearToDesiredPosition == true);
 
         _ai.CancelDestination();
+
+        IsDoingBlockingAction = true;
 
         yield return RotateTowards(itemsHidingPlace.transform.position);
 
@@ -280,17 +372,8 @@ public class CharacterController : MonoBehaviour
             _pickedItem = hiddenItem;
         }
 
+        IsDoingBlockingAction = false;
         _currentActionCoroutine = null;
-    }
-
-    public void DoConfusedExpression()
-    {
-        if (_currentActionCoroutine != null)
-        {
-            return;
-        }
-
-        _currentActionCoroutine = StartCoroutine(DoConfusedExpressionCoroutine());
     }
 
     private IEnumerator DoConfusedExpressionCoroutine()
@@ -302,16 +385,6 @@ public class CharacterController : MonoBehaviour
         _currentActionCoroutine = null;
     }
 
-    public void ExpressHappiness()
-    {
-        if (_currentActionCoroutine != null)
-        {
-            return;
-        }
-
-        _currentActionCoroutine = StartCoroutine(ExpressHappinessCoroutine());
-    }
-
     private IEnumerator ExpressHappinessCoroutine()
     {
         Debug.Log("Doggo is happy!");
@@ -320,16 +393,6 @@ public class CharacterController : MonoBehaviour
         yield return new WaitForSeconds(0);
 
         _currentActionCoroutine = null;
-    }
-
-    public void ExpressSadness()
-    {
-        if (_currentActionCoroutine != null)
-        {
-            return;
-        }
-
-        _currentActionCoroutine = StartCoroutine(ExpressSadnessCoroutine());
     }
 
     private IEnumerator ExpressSadnessCoroutine()
@@ -372,9 +435,13 @@ public class CharacterController : MonoBehaviour
         }
     }
 
+    #endregion
+
     // Update is called once per frame
     void Update()
     {
+        IDBA = IsDoingBlockingAction;
+
         float normalizedSpeed = _rb.velocity.magnitude / MoveSpeed;
         _ac.SetFloat("Speed", normalizedSpeed);
     }

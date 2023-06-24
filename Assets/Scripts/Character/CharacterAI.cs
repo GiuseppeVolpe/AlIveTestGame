@@ -15,7 +15,7 @@ public class CharacterAI : MonoBehaviour
 
     #region Navigation
 
-    const float PathUpdatingRepeatRate = 1f;
+    const float PathUpdatingRepeatRate = .5f;
 
     private const float MinDistanceThreshold = 2f;
     private const float NextWaypointDistance = 2f;
@@ -435,7 +435,7 @@ public class CharacterAI : MonoBehaviour
                         }
                         else if (gosToReach.Count == 1)
                         {
-                            success = _cc.ReachPosition(gosToReach[0].transform.position);
+                            success = _cc.ReachTarget(gosToReach[0].transform);
 
                             if (!success)
                             {

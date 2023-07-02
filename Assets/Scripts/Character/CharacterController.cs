@@ -170,8 +170,7 @@ public class CharacterController : MonoBehaviour
             _pickedItem.GetComponent<Rigidbody>().isKinematic = false;
             _pickedItem.GetComponent<Collider>().isTrigger = false;
             _pickedItem.transform.parent = null;
-            _pickedItem = null;
-            success = true;
+
 
             Pickable pickableComponent = _pickedItem.GetComponent<Pickable>();
 
@@ -179,6 +178,9 @@ public class CharacterController : MonoBehaviour
             {
                 pickableComponent.OnLeave();
             }
+
+            _pickedItem = null;
+            success = true;
         }
 
         return success;

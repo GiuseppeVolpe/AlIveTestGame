@@ -172,6 +172,13 @@ public class CharacterController : MonoBehaviour
             _pickedItem.transform.parent = null;
             _pickedItem = null;
             success = true;
+
+            Pickable pickableComponent = _pickedItem.GetComponent<Pickable>();
+
+            if (pickableComponent != null)
+            {
+                pickableComponent.OnLeave();
+            }
         }
 
         return success;
@@ -371,6 +378,13 @@ public class CharacterController : MonoBehaviour
 
         _pickedItem = item;
 
+        Pickable pickableComponent = _pickedItem.GetComponent<Pickable>();
+
+        if (pickableComponent != null)
+        {
+            pickableComponent.OnPick();
+        }
+
         IsDoingBlockingAction = false;
         _currentActionCoroutine = null;
     }
@@ -485,6 +499,13 @@ public class CharacterController : MonoBehaviour
             hiddenItem.transform.localPosition = Vector3.zero;
 
             _pickedItem = hiddenItem;
+
+            Pickable pickableComponent = _pickedItem.GetComponent<Pickable>();
+
+            if (pickableComponent != null)
+            {
+                pickableComponent.OnPick();
+            }
         }
 
         IsDoingBlockingAction = false;

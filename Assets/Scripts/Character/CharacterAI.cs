@@ -585,7 +585,8 @@ public class CharacterAI : MonoBehaviour
         {
             foreach (Entity contextEntity in context.GetEntitiesInContext())
             {
-                if (contextEntity.AnswersToTheNameOf(recognizedEntity) && contextEntity.HasType(entityType))
+                if (contextEntity.Accessible && 
+                    contextEntity.AnswersToTheNameOf(recognizedEntity) && contextEntity.HasType(entityType))
                 {
                     entitiesInContext.Add(contextEntity.gameObject);
                     break;

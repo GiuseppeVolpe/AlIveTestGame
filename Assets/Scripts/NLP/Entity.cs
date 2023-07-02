@@ -12,16 +12,27 @@ public class Entity : MonoBehaviour
 
     public EntityData Data;
 
+    public bool AccessibleFromStart;
+    public bool Accessible { get; set; }
+
+    private void Start()
+    {
+        Accessible = AccessibleFromStart;
+    }
+
     public bool AnswersToTheNameOf(string name)
     {
         bool answersToTheNameOf = false;
 
-        foreach (string syn in Data.GetGlobalSynset())
+        if (Data != null)
         {
-            if (syn.ToLower() == name.ToLower())
+            foreach (string syn in Data.GetGlobalSynset())
             {
-                answersToTheNameOf = true;
-                break;
+                if (syn.ToLower() == name.ToLower())
+                {
+                    answersToTheNameOf = true;
+                    break;
+                }
             }
         }
 
@@ -63,12 +74,15 @@ public class Entity : MonoBehaviour
     {
         bool hasType = false;
 
-        foreach (string ownedEntityType in Data.GetEntityTypes())
+        if (Data != null)
         {
-            if (entityType.ToLower() == ownedEntityType.ToLower())
+            foreach (string ownedEntityType in Data.GetEntityTypes())
             {
-                hasType = true;
-                break;
+                if (entityType.ToLower() == ownedEntityType.ToLower())
+                {
+                    hasType = true;
+                    break;
+                }
             }
         }
 

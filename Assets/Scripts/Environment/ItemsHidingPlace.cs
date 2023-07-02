@@ -19,7 +19,7 @@ public class ItemsHidingPlace : MonoBehaviour
     {
         bool success = false;
 
-        if (_hiddenItem == null)
+        if (_hiddenItem == null && item != null)
         {
             _hiddenItem = item;
 
